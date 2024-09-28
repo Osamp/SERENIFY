@@ -21,7 +21,7 @@ const SerenifyButton: React.FC<SerenifyButtonProps> = ({ children, secondary, st
       style={[
         {
           backgroundColor,
-          width: SCREEN_WIDTH * 0.6,
+          width: SCREEN_WIDTH * 0.4,
           height: 50,
           justifyContent: 'center',
           alignItems: 'center',
