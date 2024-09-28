@@ -4,11 +4,11 @@
     "slug": "SERENIFY",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/splash%20.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash%20.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
