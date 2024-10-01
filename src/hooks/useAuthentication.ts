@@ -36,8 +36,6 @@ const useAuthentication = () => {
         uid: userCredential.user.uid, // Store UID in Firestore
         createdAt: new Date().toISOString(), // Add a created timestamp
       });
-
-      Alert.alert('Success', 'User registered successfully!');
     } catch (error: any) { // Handle specific error types
       console.error('Error registering user:', error.message);
       Alert.alert('Registration Error', error.message || 'An error occurred while registering.');

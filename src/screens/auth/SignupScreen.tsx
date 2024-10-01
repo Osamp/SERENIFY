@@ -44,7 +44,7 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
             }
 
             await register(trimmedFullName, trimmedEmail, trimmedPassword);
-            Alert.alert("Signup successful");
+            Alert.alert('Success', 'User registered successfully!');
             navigation.navigate('Login'); // Navigate to login screen after signup
         } catch (error) {
             console.error('Error signing up:', error);

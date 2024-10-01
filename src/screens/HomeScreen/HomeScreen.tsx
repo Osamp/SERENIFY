@@ -32,7 +32,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   // Get the current user's ID
   const user = auth.currentUser;
   const userId = user ? user.uid : 'No user logged in';
-  const fullName = user ? (user.displayName || 'No name available') : 'No user logged in';
+  const fullName = user ? (user.displayName || 'Loading...') : 'No user logged in';
+  console.log("Successful login for " + fullName);
 
   return (
     
@@ -66,9 +67,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 Sad
               </SerenifyButton>
             </View>
+             {/* New Focus Button */}
+        <View style={styles.inputWrapper}>
+          <SerenifyButton onPress={() => navigation.navigate('FocusScreen')}>
+            Focus
+          </SerenifyButton>
+        </View>
           </View>
 
-          <View style={{ marginTop: 50, alignItems: 'center'}}>
+          <View style={{ marginTop: 80, alignItems: 'center'}}>
             <SerenifyButton onPress={handleLogout}>Logout</SerenifyButton>
           </View>
         </View>
@@ -84,7 +91,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'#79ded0'
+    backgroundColor:'#79ded0',
+    padding: 20,
   },
   inputsWrapper: {
     width: '100%',
@@ -104,9 +112,15 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'center', // Center the buttons
+    justifyContent: 'space-evenly', // Center the buttons
     marginTop: 15,
     width: '100%', // Adjust to full width
+  },
+  centerButtonWrapper: {
+    flex: 1,
+    justifyContent: 'center', // Vertically center the Focus button
+    alignItems: 'center',      // Horizontally center the Focus button
+    width: '100%',
   },
   
 });
