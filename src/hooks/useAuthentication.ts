@@ -5,12 +5,27 @@ import { Alert } from "react-native";
 
 // Validate the email and password inputs
 const validate = (fullName: string, email: string, password: string) => {
+  // Regular expression to check for special characters
+  const specialCharacterRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  // Regular expression to check for numbers
+  const numberRegex = /[0-9]/;
+
   if (!fullName || !email || !password) {
     Alert.alert('Validation Error', 'Full name, email, and password are required.');
     return false;
   }
   if (password.length < 6) {
     Alert.alert('Validation Error', 'Password must be at least 6 characters.');
+    return false;
+  }
+  // Check if password includes at least one special character
+  if (!specialCharacterRegex.test(password)) {
+    Alert.alert('Validation Error', 'Password must include at least one special character.');
+    return false;
+  }
+  // Check if password includes at least one number
+  if (!numberRegex.test(password)) {
+    Alert.alert('Validation Error', 'Password must include at least one number.');
     return false;
   }
   return true;
