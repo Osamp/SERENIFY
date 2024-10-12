@@ -43,15 +43,22 @@ const useAuthentication = () => {
   };
 
   // Log in an existing user with email and password
-  const login = async (email: string, password: string) => {
-    if (!validate("", email, password)) return; // Return if validation fails
-
+   const login = async (email: string, password: string) => {
     try {
+      console.log(`Logging in with email: ${email} and password: ${password}`);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential; // Return userCredential on success
+      
+      if (userCredential) {
+        console.log('Login successful:');
+      } else {
+        console.error('Login failed: No user credential returned');
+      }
+
+      return userCredential;
     } catch (error: any) { // Handle specific error types
+      console.error('Login Error:', error.message);
       Alert.alert('Login Error', error.message || 'An error occurred while logging in.');
-      throw error; // Re-throw error to be caught by calling function
+      throw error;
     }
   };
 

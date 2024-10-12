@@ -5,8 +5,8 @@ import BackgroundScreenWrapper from '@/src/components/BackgroundScreenWrapper';
 import SerenifyText from '@/src/components/SerenifyText';
 import SerenifyTextInput from '@/src/components/SerenifyTextInput';
 import useAuthentication from '@/src/hooks/useAuthentication';
+import { auth } from "@/app/Config/firebase"; // Import Firebase Auth to manage sessions
 
-// Replace these imports with your actual assets or paths
 const backgroundImage = require('../../../assets/images/login_bg.jpg');
 const backgroundLogo = require('../../../assets/images/logo_light.png');
 
@@ -21,15 +21,25 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         password: '',
     });
 
+    // Check if a user is already logged in (session management)
+    React.useEffect(() => {
+        const currentUser = auth.currentUser; // This will return the current user if they are logged in
+        if (currentUser) {
+            Alert.alert('User already logged in', 'Redirecting to Home screen');
+            navigation.navigate('Home'); // Automatically redirect logged-in users
+        }
+    }, []);
+
     const handleLogin = async () => {
         console.log("Trying to login with:", credentials);
         try {
-            await login(credentials.email, credentials.password);
+            const userCredential = await login(credentials.email, credentials.password);
+            console.log('Login successful:', userCredential);
             Alert.alert("Login successful");
-            navigation.navigate('Home');
+            navigation.navigate('Home'); // Navigate to the home screen after login
         } catch (error) {
             console.error('Error logging in:', error);
-            Alert.alert("Login failed");
+            Alert.alert("Login failed", 'An error occurred while logging in.');
         }
     };        
 
@@ -37,10 +47,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         <BackgroundScreenWrapper image={backgroundImage}>
             <View style={styles.container}>
                 <View style={styles.inputsWrapper}>
-                    {/* Ensure images are correctly rendered */}
                     <Image source={backgroundLogo} style={styles.logo} />
-                    
-                    {/* Proper use of SerenifyText component */}
                     <SerenifyText heading bold>Serenify</SerenifyText>
                     <SerenifyText>find a moment of Peace</SerenifyText>
                     
@@ -69,7 +76,6 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                     </View>
                     
                     <View style={{ marginTop: 15 }}>
-                        {/* Ensure Button is not causing the issue */}
                         <Button
                             title="Login"
                             onPress={() => {
@@ -80,10 +86,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                     </View>
                     
                     <View style={{ marginTop: 15 }}>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('Signup')}
-                        >
-                            {/* Wrap text content inside SerenifyText or Text component */}
+                        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
                             <SerenifyText>Don't have an account? Signup</SerenifyText>
                         </TouchableOpacity>
                     </View>
@@ -100,11 +103,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    textTitle: {
-        fontSize: 24,
-        color: '#fff',
-        fontWeight: 'bold'
     },
     inputsWrapper: {
         width: '100%',

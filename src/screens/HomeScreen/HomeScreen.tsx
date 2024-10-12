@@ -45,12 +45,12 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           
           {/* Display the User ID */}
           <View style={styles.inputWrapper}>
-            <SerenifyText heading>Welcome,</SerenifyText>
-            <SerenifyText>{fullName}</SerenifyText>
+            <SerenifyText heading style={{ color: 'black' }}>Welcome,</SerenifyText>
+            <SerenifyText style={{ fontSize: 40, color: 'black' }}>{fullName}</SerenifyText>
           </View>
           
           <View style={styles.inputWrapper}>
-            <SerenifyText heading>How are you feeling today?</SerenifyText>
+            <SerenifyText heading style={{ color: 'black' }}>How are you feeling today?</SerenifyText>
             
             <View style={styles.buttonContainer}>
               <SerenifyButton
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     alignSelf: 'flex-start', // Align to the left
     paddingHorizontal: 10, 
+    
   },
   logo: {
     width: 100,
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     marginTop: 15,
+    
   },
   buttonContainer: {
     flexDirection: 'row',

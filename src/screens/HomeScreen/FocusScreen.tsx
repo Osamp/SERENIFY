@@ -155,15 +155,15 @@ const FocusScreen = () => {
           {/* Audio control using icons */}
           <View style={styles.audioControls}>
             <TouchableOpacity onPress={handlePrevious} style={styles.iconButton}>
-              <Icon name="backward" size={40} color="#FFD700" />
+              <Icon name="backward" size={40} color="00000" />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handlePlayPause} style={styles.iconButton}>
-              <Icon name={isPlaying ? "pause" : "play"} size={40} color="#FFD700" />
+              <Icon name={isPlaying ? "pause" : "play"} size={40} color="00000" />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleNext} style={styles.iconButton}>
-              <Icon name="forward" size={40} color="#FFD700" />
+              <Icon name="forward" size={40} color="0000" />
             </TouchableOpacity>
           </View>
         </>
@@ -172,11 +172,11 @@ const FocusScreen = () => {
       {/* Volume control using icons */}
       <View style={styles.volumeControls}>
         <TouchableOpacity onPress={decreaseVolume} style={styles.volumeButton}>
-          <Icon name="volume-down" size={30} color="#FFD700" />
+          <Icon name="volume-down" size={30} color="#000" />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={increaseVolume} style={styles.volumeButton}>
-          <Icon name="volume-up" size={30} color="#FFD700" />
+          <Icon name="volume-up" size={30} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: 'white',
+    color: '000',
   },
   progressContainer: {
     width: '80%',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   timeText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 14,
   },
   audioControls: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   volumeControls: {
     flexDirection: 'row',
     marginTop: 30,
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
   },
   volumeButton: {
     marginHorizontal: 20,

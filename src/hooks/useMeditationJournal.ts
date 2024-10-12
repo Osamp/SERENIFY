@@ -3,14 +3,13 @@ import { db } from '@/app/Config/firebase'; // Correctly import `db`
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 interface MeditationData {
-  reflection: string[];
-  focus: string[];
+  reflection: string[]; // This will contain the text input from the textarea
+  imageUrl?: string; // Optional image URL field
 }
 
 const useMeditationJournal = () => {
   const [meditationData, setMeditationData] = useState<MeditationData>({
-    reflection: ['', ''],
-    focus: ['', ''],
+    reflection: [''], // Single reflection input
   });
   const [loading, setLoading] = useState(false);
 
@@ -32,12 +31,12 @@ const useMeditationJournal = () => {
     }
   };
 
-  // Function to save meditation journal data
-  const saveMeditationData = async (userId: string, date: string, reflection: string[], focus: string[]) => {
+  // Function to save meditation journal data, including the image URL
+  const saveMeditationData = async (userId: string, date: string, reflection: string[], imageUrl?: string) => {
     setLoading(true);
     try {
       const docRef = doc(db, `meditationjournal/${userId}/entries/${date}`);
-      await setDoc(docRef, { reflection, focus });
+      await setDoc(docRef, { reflection, imageUrl }); // Save the reflection and image URL
       console.log('Meditation journal data saved successfully.');
     } catch (error) {
       console.error('Error saving meditation journal data:', error);
