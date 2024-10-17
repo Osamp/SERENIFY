@@ -46,7 +46,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           {/* Display the User ID */}
           <View style={styles.inputWrapper}>
             <SerenifyText heading style={{ color: 'black' }}>Welcome,</SerenifyText>
-            <SerenifyText style={{ fontSize: 40, color: 'black' }}>{fullName}</SerenifyText>
+            <SerenifyText style={{ fontSize: 60, color: 'black' }}>{fullName} 👋</SerenifyText>
           </View>
           
           <View style={styles.inputWrapper}>

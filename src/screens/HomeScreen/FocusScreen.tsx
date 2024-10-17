@@ -1,35 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, Easing, Image } from 'react-native';
 import { Audio } from 'expo-av';
 import { getDownloadURL, listAll, ref } from 'firebase/storage';
 import { storage } from "@/app/Config/firebase";
 import Slider from '@react-native-community/slider';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+const disc = require('../../../assets/images/disc.png'); // Path to your disc image
 
 const FocusScreen = () => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
-  const [audioFiles, setAudioFiles] = useState<string[]>([]);
+  const [audioFiles, setAudioFiles] = useState<{ name: string, url: string }[]>([]);
   const [isBuffering, setIsBuffering] = useState(false);
-  const [position, setPosition] = useState(0); // Current playback position
-  const [duration, setDuration] = useState(0); // Total duration of the audio
-  const [volume, setVolume] = useState(1); // Initial volume set to 1 (100%)
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const spinValue = useRef(new Animated.Value(0)).current;
   const isMounted = useRef(true);
 
   useEffect(() => {
-    // Fetch audio files from Firebase storage
     const fetchAudioFiles = async () => {
       const storageRef = ref(storage, "gs://serenify-21975.appspot.com/");
       const result = await listAll(storageRef);
-      const urls = await Promise.all(result.items.map((itemRef) => getDownloadURL(itemRef)));
-      if (isMounted.current) setAudioFiles(urls);
+      const audioList = await Promise.all(result.items.map(async (itemRef) => {
+        const url = await getDownloadURL(itemRef);
+        const name = itemRef.name.replace(/\.[^/.]+$/, ''); // Remove extension from file name
+        return { name, url };
+      }));
+      if (isMounted.current) setAudioFiles(audioList);
     };
 
     fetchAudioFiles();
 
-    // Cleanup function to unload sound
     return () => {
       isMounted.current = false;
       if (sound) {
@@ -46,16 +51,18 @@ const FocusScreen = () => {
 
     const { sound: newSound } = await Audio.Sound.createAsync(
       { uri: audioUri },
-      { shouldPlay: true }, // Automatically play the sound
+      { shouldPlay: true },
       onPlaybackStatusUpdate
     );
 
     setSound(newSound);
-    await newSound.setVolumeAsync(volume); // Set initial volume
+    await newSound.setVolumeAsync(volume);
     setIsLoading(false);
     setIsPlaying(true);
 
     await newSound.playAsync();
+
+    startSpinning(); // Start spinning the disc when playing
   };
 
   const onPlaybackStatusUpdate = (status: Audio.AudioStatus) => {
@@ -64,6 +71,11 @@ const FocusScreen = () => {
       setIsBuffering(status.isBuffering);
       setPosition(status.positionMillis);
       setDuration(status.durationMillis || 0);
+
+      // Stop spinning if paused
+      if (!status.isPlaying) {
+        stopSpinning();
+      }
     }
     if (status.error) {
       console.log(`Error during playback: ${status.error}`);
@@ -75,9 +87,11 @@ const FocusScreen = () => {
       if (isPlaying) {
         await sound.pauseAsync();
         setIsPlaying(false);
+        stopSpinning();
       } else {
         await sound.playAsync();
         setIsPlaying(true);
+        startSpinning(); // Restart spinning when resuming playback
       }
     }
   };
@@ -85,14 +99,34 @@ const FocusScreen = () => {
   const handleNext = () => {
     const nextIndex = (currentAudioIndex + 1) % audioFiles.length;
     setCurrentAudioIndex(nextIndex);
-    playSound(audioFiles[nextIndex]);
+    playSound(audioFiles[nextIndex].url);
   };
 
   const handlePrevious = () => {
     const prevIndex = (currentAudioIndex - 1 + audioFiles.length) % audioFiles.length;
     setCurrentAudioIndex(prevIndex);
-    playSound(audioFiles[prevIndex]);
+    playSound(audioFiles[prevIndex].url);
   };
+
+  const startSpinning = () => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
+
+  const stopSpinning = () => {
+    spinValue.stopAnimation(); // Stop the disc from spinning
+  };
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const formatTime = (millis: number) => {
     const minutes = Math.floor(millis / 60000);
@@ -100,89 +134,71 @@ const FocusScreen = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  const handleSliderChange = async (value: number) => {
-    if (sound) {
-      await sound.setPositionAsync(value);
-    }
-  };
-
-  const increaseVolume = async () => {
-    if (sound && volume < 1) {
-      const newVolume = Math.min(volume + 0.1, 1); // Increase volume, max is 1 (100%)
-      setVolume(newVolume);
-      await sound.setVolumeAsync(newVolume);
-    }
-  };
-
-  const decreaseVolume = async () => {
-    if (sound && volume > 0) {
-      const newVolume = Math.max(volume - 0.1, 0); // Decrease volume, min is 0 (mute)
-      setVolume(newVolume);
-      await sound.setVolumeAsync(newVolume);
-    }
-  };
-
   useEffect(() => {
     if (audioFiles.length > 0) {
-      playSound(audioFiles[currentAudioIndex]);
+      playSound(audioFiles[currentAudioIndex].url);
     }
   }, [audioFiles]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Meditation Audio</Text>
+      <Text style={styles.title}>Now Playing</Text>
+      <Text style={styles.audioTitle}>
+        {audioFiles[currentAudioIndex]?.name || 'Loading...'}
+      </Text>
 
-      {/* Display ActivityIndicator when loading or buffering */}
+      {/* Spinning disc */}
+      <Animated.Image
+        source={disc}
+        style={[
+          styles.disc,
+          { transform: [{ rotate: spin }] },
+        ]}
+      />
+
       {isLoading || isBuffering ? (
         <ActivityIndicator size="large" color="#00ff00" />
       ) : (
         <>
-          {/* Progress bar and time display */}
+          {/* Volume and audio control in the same line */}
+          <View style={styles.controlRow}>
+            <TouchableOpacity onPress={() => setVolume(Math.max(volume - 0.1, 0))} style={styles.controlButton}>
+              <Icon name="volume-down" size={30} color="#000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
+              <Icon name="backward" size={40} color="00000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handlePlayPause} style={styles.controlButton}>
+              <Icon name={isPlaying ? "pause" : "play"} size={40} color="00000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
+              <Icon name="forward" size={40} color="0000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setVolume(Math.min(volume + 0.1, 1))} style={styles.controlButton}>
+              <Icon name="volume-up" size={30} color="#000" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress bar at the bottom */}
           <View style={styles.progressContainer}>
             <Slider
               style={styles.slider}
               value={position}
               minimumValue={0}
               maximumValue={duration}
-              onSlidingComplete={handleSliderChange}
+              onSlidingComplete={(value) => sound?.setPositionAsync(value)}
             />
             <View style={styles.timeContainer}>
               <Text style={styles.timeText}>{formatTime(position)}</Text>
               <Text style={styles.timeText}>{formatTime(duration - position)}</Text>
             </View>
           </View>
-
-          {/* Audio control using icons */}
-          <View style={styles.audioControls}>
-            <TouchableOpacity onPress={handlePrevious} style={styles.iconButton}>
-              <Icon name="backward" size={40} color="00000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handlePlayPause} style={styles.iconButton}>
-              <Icon name={isPlaying ? "pause" : "play"} size={40} color="00000" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handleNext} style={styles.iconButton}>
-              <Icon name="forward" size={40} color="0000" />
-            </TouchableOpacity>
-          </View>
         </>
       )}
-
-      {/* Volume control using icons */}
-      <View style={styles.volumeControls}>
-        <TouchableOpacity onPress={decreaseVolume} style={styles.volumeButton}>
-          <Icon name="volume-down" size={30} color="#000" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={increaseVolume} style={styles.volumeButton}>
-          <Icon name="volume-up" size={30} color="#000" />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.audioInfo}>
-        {isLoading ? "Loading audio..." : isBuffering ? "Buffering..." : `Playing: Audio ${currentAudioIndex + 1}`}
-      </Text>
     </View>
   );
 };
@@ -190,20 +206,33 @@ const FocusScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#79ded0',
+    paddingBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginTop: 40,
     color: '000',
   },
+  audioTitle: {
+    fontSize: 18,
+    color: '#000', // Changed song title color to black
+    marginBottom: 10,
+  },
+  disc: {
+    width: 250, // Increased size of the disc
+    height: 250,
+    borderRadius: 125,
+    marginBottom: 20,
+  },
   progressContainer: {
-    width: '80%',
+    width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
   slider: {
     width: '100%',
@@ -213,33 +242,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginTop: 10,
+    marginTop: 5,
   },
   timeText: {
     color: '#000',
     fontSize: 14,
   },
-  audioControls: {
+  controlRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  iconButton: {
-    marginHorizontal: 20,
-  },
-  volumeControls: {
-    flexDirection: 'row',
-    marginTop: 30,
     justifyContent: 'space-evenly',
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20, // Space between controls and progress bar
   },
-  volumeButton: {
-    marginHorizontal: 20,
-    padding: 10,
-  },
-  audioInfo: {
-    marginTop: 20,
-    fontSize: 16,
-    color: '#fff',
+  controlButton: {
+    paddingHorizontal: 10,
   },
 });
 
